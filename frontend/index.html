@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoAgent – AI Route Planner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">🌍 GeoAgent</span>
+      <p class="tagline">AI-powered sightseeing routes &amp; geocaching clues</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── Input card ── -->
+    <section class="card" id="input-card">
+      <h2>Plan Your Adventure</h2>
+      <div class="form-row">
+        <label for="city-input">City</label>
+        <input
+          type="text"
+          id="city-input"
+          placeholder="e.g. Paris, London, Tokyo…"
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+      <div class="form-row">
+        <label for="stops-input">Number of stops</label>
+        <input type="range" id="stops-input" min="1" max="6" value="4" />
+        <span id="stops-value">4</span>
+      </div>
+      <button id="generate-btn">Generate Route &amp; Clues</button>
+      <p id="error-msg" class="error hidden"></p>
+    </section>
+
+    <!-- ── Results ── -->
+    <section id="results" class="hidden">
+
+      <!-- Route summary -->
+      <div class="card" id="summary-card">
+        <h2 id="route-title"></h2>
+        <p id="route-summary"></p>
+        <p id="route-note" class="note hidden"></p>
+      </div>
+
+      <!-- Stops + clues -->
+      <div id="stops-container"></div>
+
+      <!-- Conversation history -->
+      <div class="card" id="history-card">
+        <h2>Conversation History</h2>
+        <div id="history-list"></div>
+      </div>
+
+    </section>
+
+    <!-- ── Loading spinner ── -->
+    <div id="loading" class="hidden">
+      <div class="spinner"></div>
+      <p>Planning your route…</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>GeoAgent MVP · Powered by a mock AI engine (replaceable with MiMo API)</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
