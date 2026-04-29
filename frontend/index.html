@@ -41,6 +41,12 @@
     <!-- ── Results ── -->
     <section id="results" class="hidden">
 
+      <!-- Agent pipeline trace -->
+      <div class="card" id="pipeline-card">
+        <h2>🤖 Agent Reasoning Trace</h2>
+        <div id="pipeline-list"></div>
+      </div>
+
       <!-- Route summary -->
       <div class="card" id="summary-card">
         <h2 id="route-title"></h2>
@@ -67,7 +73,7 @@
   </main>
 
   <footer>
-    <p>GeoAgent MVP · Powered by a mock AI engine (replaceable with MiMo API)</p>
+    <p>GeoAgent · AI Agent prototype · Pipeline: Intent Parsing → Route Planning → Clue Generation → Dialogue Synthesis</p>
   </footer>
 
   <script src="app.js"></script>

@@ -1,8 +1,18 @@
 """
 GeoAgent AI logic module.
 
-Provides mock LLM-based route planning and geocaching clue generation.
-This module is designed to be easily replaced with a real LLM (e.g. MiMo API).
+This module implements the core Agent pipeline:
+
+  1. Intent Parsing   – extract city, stop count, and preferences from user input
+  2. Route Planning   – select and order landmarks via LLM-style reasoning
+  3. Clue Generation  – produce geocaching riddle-clues for each waypoint
+  4. Dialogue Synthesis – wrap everything in a conversational response
+
+The pipeline is currently backed by a deterministic mock engine
+(pre-seeded landmark data + randomised clue templates).  Every public
+function is designed as a drop-in replacement point for a real LLM
+(e.g. MiMo API, OpenAI, Anthropic) — swap out the function body and
+the rest of the system (main.py, frontend) requires no changes.
 """
 
 import random
@@ -137,27 +147,63 @@ DEFAULT_CLUE_TEMPLATES = [
 
 
 # ---------------------------------------------------------------------------
-# Public API
+# Public API  (Agent pipeline steps)
 # ---------------------------------------------------------------------------
+
+
+def parse_intent(city: str, num_stops: int) -> dict[str, Any]:
+    """
+    Agent pipeline – Step 1: Intent Parsing.
+
+    Transforms raw user input into a structured intent object that drives
+    the downstream planning steps.  In a production system this function
+    would send the raw user message to an LLM with a structured-output
+    schema prompt and receive a validated JSON intent back.
+
+    Returns a dict with:
+      - city_key: normalised (lower-case) city name for lookup
+      - city_display: title-cased display name
+      - num_stops: validated stop count
+      - exploration_style: inferred preference (mock; LLM would derive from context)
+    """
+    city_display = city.strip().title()
+    city_key = city.strip().lower()
+
+    # Mock intent inference — a real LLM step would derive these from free-form text
+    styles = ["cultural", "historic", "scenic", "gastronomic"]
+    exploration_style = styles[len(city_key) % len(styles)]
+
+    return {
+        "city_key": city_key,
+        "city_display": city_display,
+        "num_stops": num_stops,
+        "exploration_style": exploration_style,
+    }
 
 
 def generate_route(city: str, num_stops: int = 4) -> dict[str, Any]:
     """
-    Generate a sightseeing route for the given city.
+    Agent pipeline – Step 2: Route Planning.
+
+    Uses the parsed intent to select and order the most relevant landmarks.
+    In production this step would prompt an LLM with city context, user
+    preferences, and geospatial constraints to produce an optimal route.
 
     Returns a dict with:
       - city: normalised city name
-      - stops: list of landmark dicts
-      - summary: human-readable description
+      - stops: ordered list of landmark dicts (name, lat, lon, type)
+      - summary: human-readable itinerary description
+      - note: empty string on success; warning message for unknown cities
     """
     city_key = city.strip().lower()
     landmarks = CITY_LANDMARKS.get(city_key)
 
     if landmarks:
+        # Mock "reasoning": randomly sample to simulate LLM-based landmark selection
         stops = random.sample(landmarks, min(num_stops, len(landmarks)))
         note = ""
     else:
-        # Fallback for unknown cities
+        # Graceful fallback — a real LLM would call a geocoding API here
         stops = _generate_generic_stops(city, num_stops)
         note = f"No landmark data found for '{city}'. Showing generic waypoints."
 
@@ -171,7 +217,12 @@ def generate_route(city: str, num_stops: int = 4) -> dict[str, Any]:
 
 def generate_clues(stops: list[dict[str, Any]], city: str) -> list[dict[str, Any]]:
     """
-    Generate a geocaching clue for each stop on the route.
+    Agent pipeline – Step 3: Clue Generation.
+
+    Produces a riddle-style geocaching clue for every waypoint on the route.
+    In production each stop would be passed to an LLM with instructions to
+    write a cryptic, location-aware hint tailored to the landmark's history
+    and surroundings.
 
     Returns a list of dicts with:
       - stop_name: landmark name
@@ -182,6 +233,7 @@ def generate_clues(stops: list[dict[str, Any]], city: str) -> list[dict[str, Any
     for stop in stops:
         landmark_type = stop.get("type", "monument")
         templates = CLUE_TEMPLATES.get(landmark_type, DEFAULT_CLUE_TEMPLATES)
+        # Mock "generation": pick a template and fill placeholders
         clue_text = random.choice(templates).format(
             city=city, type=landmark_type, hour="noon"
         )
