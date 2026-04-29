@@ -202,7 +202,11 @@ def generate_clues(stops: list[dict[str, Any]], city: str) -> list[dict[str, Any
 
 
 def _generate_generic_stops(city: str, num_stops: int) -> list[dict[str, Any]]:
-    """Return placeholder stops for cities not in our database."""
+    """Return placeholder stops for cities not in our database.
+
+    Coordinates are intentionally randomised as stand-ins; replace with a
+    geocoding call (e.g. Nominatim) when integrating a real LLM backend.
+    """
     generic_types = ["monument", "museum", "park", "bridge"]
     stops = []
     for i in range(num_stops):

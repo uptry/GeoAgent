@@ -138,8 +138,9 @@ def test_generate_clues_structure():
 
 
 def test_generate_route_unknown_city():
-    result = generate_route("UnknownCity", 3)
-    assert result["city"] == "Unknowncity"
+    # Use all-lowercase so the .title() transformation is explicit: "atlantis" -> "Atlantis"
+    result = generate_route("atlantis", 3)
+    assert result["city"] == "Atlantis"
     assert len(result["stops"]) == 3
     assert result["note"] != ""
 
