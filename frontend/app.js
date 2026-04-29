@@ -2,7 +2,13 @@
  * GeoAgent – frontend application logic.
  *
  * Communicates with the FastAPI backend (/api/agent) and renders
- * the route + geocaching clues in the UI.
+ * the agent pipeline trace, route, and geocaching clues in the UI.
+ *
+ * Agent pipeline (mirrored from the backend):
+ *   1. Intent Parsing     – city + preferences extracted from user input
+ *   2. Route Planning     – landmark selection and ordering
+ *   3. Clue Generation    – geocaching riddles per waypoint
+ *   4. Dialogue Synthesis – conversational response + history update
  */
 
 const API_BASE = "http://localhost:8000";
@@ -20,6 +26,7 @@ const routeSummary  = document.getElementById("route-summary");
 const routeNote     = document.getElementById("route-note");
 const stopsContainer = document.getElementById("stops-container");
 const historyList   = document.getElementById("history-list");
+const pipelineList  = document.getElementById("pipeline-list");
 
 // ── State ───────────────────────────────────────────────────────────────────
 let conversationHistory = [];
@@ -68,6 +75,35 @@ function renderHistory(history) {
     div.className = `msg msg-${role === "user" ? "user" : "assistant"}`;
     div.innerHTML = `<div class="msg-role">${escapeHtml(role)}</div>${escapeHtml(content)}`;
     historyList.appendChild(div);
+  });
+}
+
+// Render the agent pipeline trace (step-by-step reasoning)
+function renderPipeline(steps) {
+  pipelineList.innerHTML = "";
+  const STEP_LABELS = {
+    intent_parsing: "🔍 Intent Parsing",
+    route_planning: "🗺️ Route Planning",
+    clue_generation: "🔑 Clue Generation",
+    dialogue_synthesis: "💬 Dialogue Synthesis",
+  };
+  steps.forEach((s) => {
+    const div = document.createElement("div");
+    div.className = "pipeline-step";
+    const label = STEP_LABELS[s.step] || escapeHtml(s.step);
+    const outputText = Object.entries(s.output)
+      .map(([k, v]) => {
+        const raw = String(v);
+        const display = raw.length > 60 ? raw.slice(0, 57) + "…" : raw;
+        return `${k}: ${escapeHtml(display)}`;
+      })
+      .join(" · ");
+    div.innerHTML = `
+      <span class="ps-label">${label}</span>
+      <span class="ps-status ps-${escapeHtml(s.status)}">${escapeHtml(s.status)}</span>
+      <span class="ps-output">${outputText}</span>
+    `;
+    pipelineList.appendChild(div);
   });
 }
 
@@ -125,6 +161,7 @@ async function handleGenerate() {
     }
 
     renderStops(data.clues);
+    renderPipeline(data.pipeline_steps || []);
     renderHistory(conversationHistory);
 
     setLoading(false);
